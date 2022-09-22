@@ -11,7 +11,7 @@
 
             <div class="col">
                 <ul class="list-inline my-2">
-                    <li class="list-inline-item"><a class="footer-link" href="https://revived.fr/boutique/legal.php">Github</a></li>
+                    <li class="list-inline-item"><a class="footer-link" href="https://github.com/Faeety/passcrack">Github</a></li>
                 </ul>
             </div>
         </div>
