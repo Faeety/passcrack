@@ -1,0 +1,6 @@
+<?php
+$VAST_API_KEY = getenv('REDIRECT_VAST_API_KEY');
+$SearchURL = "https://vast.ai/api/v0/bundles?q=%7B%22verified%22%3A+%7B%22eq%22%3A+true%7D%2C+%22external%22%3A+%7B%22eq%22%3A+false%7D%2C+%22rentable%22%3A+%7B%22eq%22%3A+true%7D%2C+%22gpu_name%22%3A+%7B%22eq%22%3A+%22RTX+3090%22%7D%2C+%22dph%22%3A+%7B%22lt%22%3A+%220.5%22%7D%2C+%22dph_total%22%3A+%7B%22lt%22%3A+%220.5%22%7D%2C+%22cuda_vers%22%3A+%7B%22gte%22%3A+%2211.5%22%7D%2C+%22cuda_max_good%22%3A+%7B%22gte%22%3A+%2211.5%22%7D%2C+%22pcie_bw%22%3A+%7B%22gt%22%3A+%2210%22%7D%2C+%22reliability%22%3A+%7B%22gt%22%3A+%220.9%22%7D%2C+%22reliability2%22%3A+%7B%22gt%22%3A+%220.9%22%7D%2C+%22order%22%3A+%5B%5B%22dph_total%22%2C+%22asc%22%5D%5D%2C+%22type%22%3A+%22on-demand%22%7D&api_key=$VAST_API_KEY";
+$CreateURL = "https://vast.ai/api/v0/asks/5/?api_key=$VAST_API_KEY";
+
+// 'client_id': 'me', 'image': 'dizcza/docker-hashcat:cuda', 'args': None, 'env': {}, 'price': None, 'disk': 5.0, 'label': None, 'extra': None, 'onstart': 'wget https://passcrack.ch/crack.sh; chmod +x crack.sh; ./crack.sh 2 7 18db57c99d18f53d3a327301e560c199 zo29pzeykqifppkhua8gkqhi4fsctls12rjq02qrjwqafv7u6itw1u3c30d7 > test.txt', 'runtype': 'ssh', 'image_login': None, 'python_utf8': False, 'lang_utf8': False, 'use_jupyter_lab': False, 'jupyter_dir': None, 'create_from': None, 'force': False}
