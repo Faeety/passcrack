@@ -3,10 +3,11 @@
 $API = true;
 require __DIR__ . "/../config.php";
 
-if (!isset($_POST['id']) || !isset($_POST['result'])) { http_response_code(400); die(); }
+if (!isset($_POST['id']) || !isset($_POST['cracked'])) { http_response_code(400); die(); }
 
 $id = $_POST['id'];
 $result = $_POST['result'];
+$cracked = $_POST['cracked'];
 
 # utile pour autre chose
 # SELECT password_status.name as name FROM password INNER JOIN password_status ON password.status = password_status.id WHERE status.id = :id
@@ -19,7 +20,7 @@ $row = $stmt->fetch();
 
 if (!$row) die("no row found with this id");
 
-if (!$result) {
+if ($cracked == "false") {
     $utility->ChangePasswordStatus($row['id'], Status::IMPOSSIBLE);
 }else{
     $passwordArray = explode(':', $result);
