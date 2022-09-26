@@ -15,10 +15,17 @@ $conn->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
 session_start();
 
 $API_TOKEN = getenv('REDIRECT_API_TOKEN');
+$VAST_API_KEY = getenv('REDIRECT_VAST_API_KEY');
+$CRON_TOKEN = getenv('REDIRECT_CRON_TOKEN');
 
 if(isset($API) && $API){
     if(!isset($_POST['token'])) { http_response_code(400); die(); }
     if(!hash_equals($API_TOKEN, $_POST['token'])) { http_response_code(401); die(); }
+}
+
+if(isset($CRON) && $CRON){
+    if(!isset($_GET['token'])) { http_response_code(400); die(); }
+    if(!hash_equals($CRON_TOKEN, $_GET['token'])) { http_response_code(401); die(); }
 }
 
 spl_autoload_register(function ($class) {
