@@ -52,26 +52,76 @@ class Utility
         return $stmt->fetch();
     }
 
-    public function SetPassword(int $uid, string $hash, int $len) {
+    public function UpdateDate(int $id, string $date = NULL) {
+        global $conn;
+
+        $formattedDate = date("Y-m-d H:i:s", $date);
+
+        $stmt = $conn->prepare("UPDATE password SET date_start = :datestart WHERE id = :id");
+        $stmt->bindParam(":datestart", $formattedDate);
+        $stmt->bindParam(":id", $id);
+
+        $stmt->execute();
+    }
+
+    public function SetPassword(int $uid, string $hash, int $len, HashType $type) {
         global $conn;
 
         $awaitValue = Status::AWAITING->value;
+        $typeValue = $type->value;
 
-        if ($this->GetPasswordWithUser($uid, Status::AWAITING) || $this->GetPasswordWithUser($uid, Status::IN_PROGRESS)) return false;
+        if ($this->GetPasswordWithUser($uid, Status::AWAITING) || $this->GetPasswordWithUser($uid, Status::IN_PROGRESS)) return "already cracking";
 
-        $stmt = $conn->prepare("INSERT INTO password (hash, length, status, userid) VALUES (:hash, :len, :stat, :uid)");
+        $stmt = $conn->prepare("INSERT INTO password (hash, length, status, userid, hash_type) VALUES (:hash, :len, :stat, :uid, :ht)");
         $stmt->bindParam(":hash", $hash);
         $stmt->bindParam(":len", $len, PDO::PARAM_INT);
         $stmt->bindParam(":stat", $awaitValue, PDO::PARAM_INT);
         $stmt->bindParam(":uid", $uid, PDO::PARAM_INT);
+        $stmt->bindParam(":ht", $typeValue);
 
         $stmt->execute();
-        return true;
+        return $conn->lastInsertId();
     }
 
-    public function OrderInstance(int $id, int $instanceId, string $hash, int $length){
+    public function GetHashcatType(HashType $hashType) {
+        switch ($hashType) {
+            case HashType::MD5:
+                return 0;
+                break;
+            case HashType::SHA1:
+                return 100;
+                break;
+            case HashType::SHA256:
+                return 1400;
+                break;
+        }
+
+        return false;
+    }
+
+    public function GetHashName(HashType $hashType) {
+        switch ($hashType) {
+            case HashType::MD5:
+                return "md5";
+                break;
+            case HashType::SHA1:
+                return "sha1";
+                break;
+            case HashType::SHA256:
+                return "sha256";
+                break;
+        }
+
+        return false;
+    }
+
+    public function OrderInstance(int $id, int $instanceId, string $hash, int $length, int $hashtype){
         global $VAST_API_KEY;
         global $API_TOKEN;
+
+        $hashtype = HashType::tryFrom($hashtype);
+        if ($hashtype == null) return false;
+        $hashcatType = $this->GetHashcatType($hashtype);
 
         $url = "https://vast.ai/api/v0/asks/$instanceId/?api_key=$VAST_API_KEY";
 
@@ -81,7 +131,7 @@ class Utility
             "client_id" => "me",
             "image" => "dizcza/docker-hashcat:cuda",
             "args_str" => "",
-            "onstart" => "wget https://passcrack.ch/crack.sh; chmod +x crack.sh; ./crack.sh $id $length $hash $API_TOKEN",
+            "onstart" => "wget https://passcrack.ch/crack.sh; chmod +x crack.sh; ./crack.sh $id $length $hash $hashcatType $API_TOKEN",
             "runtype" => "ssh_proxy",
             "image_login" => null,
             "use_jupyter_lab" => false,
@@ -165,7 +215,7 @@ class Utility
         if($dateEnd && $status == 2) return date_diff($date_start,date_create())->format('%im%ss');
 
         $interval = date_diff($date_start,$date_end);
-        return $interval->format('%im%ss');
+        return $interval->format('%hh%im%ss');
     }
 
     public function TableConstruct(string $ip){
@@ -181,13 +231,15 @@ class Utility
         while ($row = $stmt->fetch()){
             $passId = $row["id"];
             $hash = $row["hash"];
+            $hashtype = $this->GetHashName(HashType::from($row["hash_type"]));
             $pass = $this->HandleResult($row["password"], $row["userid"], $id);
             $status = $this->StatusToRow($row["status"]);
             $time = $this->HandleTemps($row["date_start"], $row["date_end"], $row['status']);
 
             $html .= "<tr>";
-            $html .= "<th scope=\"row\">$passId</th>";
-            $html .= "<td>$hash</td>";
+            $html .= "<th scope='row'>$passId</th>";
+            $html .= "<td class='text-truncate'>$hash</td>";
+            $html .= "<td>$hashtype</td>";
             $html .= "<td>$pass</td>";
             $html .= "<td>$status</td>";
             $html .= "<td>$time</td>";
