@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require __DIR__ . "/Status.php";
+require __DIR__ . "/HashType.php";
 
 $servername = "eg3es.myd.infomaniak.com";
 $username = "eg3es_passcrack";
