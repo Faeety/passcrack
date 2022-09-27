@@ -2,19 +2,20 @@
 id=$1
 length=$2
 phash=$3
-token=$4
+hashType=$4
+token=$5
 FILE=cracked.txt
 URL="https://passcrack.ch/scripts/handle_crack.php"
-patern=?a
+pattern=?a
 
 # Création du paterne avec la taille du mot de passe
 for (( i=1; i<=($length-1); i++ ))
 do
-	patern+=?a
+	pattern+=?a
 done
 
 # Execution du logiciel hashcat pour craquer le mot de passe avec un runtime max d'1 heure.
-hashcat --runtime 3600 -o cracked.txt -m 0 -a 3 $phash $patern
+hashcat --runtime 3600 -o cracked.txt -m "$hashType" -a 3 "$phash" "$pattern"
 
 # Si un fichier est crée alors on envoie le mot de passe craqué au serveur si non on dit au serveur que le hash est faux
 if [ -f "$FILE" ]; then
