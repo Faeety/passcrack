@@ -34,3 +34,4 @@ spl_autoload_register(function ($class) {
 });
 
 $utility = new Utility();
+$enc = new Encryption();
