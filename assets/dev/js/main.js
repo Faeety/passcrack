@@ -2,7 +2,102 @@ function loadTable() {
     if (document.hasFocus()) $("#page-table").load("subpages/table.page.php");
 }
 
-$(document).ready(() => {
+function ab2str(buf) {
+    return String.fromCharCode.apply(null, new Uint8Array(buf));
+}
+
+function str2ab(str) {
+    let buf = new ArrayBuffer(str.length);
+    let bufView = new Uint8Array(buf);
+    for (let i = 0, strLen = str.length; i < strLen; i++) {
+        bufView[i] = str.charCodeAt(i);
+    }
+    return buf;
+}
+
+function StoreKeys(pvkey, pbkey) {
+    localStorage.setItem("pvkey", pvkey);
+    localStorage.setItem("pbkey", pbkey);
+}
+
+async function GenerateKeys() {
+    let key = await window.crypto.subtle.generateKey(
+        {
+            name: "RSA-OAEP",
+            modulusLength: 4096,
+            publicExponent: new Uint8Array([0x01, 0x00, 0x01]),
+            hash: {name: "SHA-1"}
+        },
+        true,
+        ["encrypt", "decrypt"]
+    )
+
+    let pvkey = await window.crypto.subtle.exportKey(
+        "pkcs8",
+        key.privateKey
+    )
+
+    let pbkey = await window.crypto.subtle.exportKey(
+        "spki",
+        key.publicKey
+    )
+
+    let pemPvKey = `-----BEGIN PRIVATE KEY-----\n${window.btoa(ab2str(pvkey))}\n-----END PRIVATE KEY-----`;
+    let pemPbKey = `-----BEGIN PUBLIC KEY-----\n${window.btoa(ab2str(pbkey))}\n-----END PUBLIC KEY-----`;
+
+    return [pemPvKey, pemPbKey]
+}
+
+function FormatPrivateKey(pemPvKey) {
+    return pemPvKey.replace("-----BEGIN PRIVATE KEY-----", "").replace("-----END PRIVATE KEY-----", "").replace(/[\r\n]/gm, "");
+
+}
+
+function GetKeys() {
+    const pvkey = localStorage.getItem("pvkey");
+    const pbkey = localStorage.getItem("pbkey");
+
+    return [pvkey, pbkey]
+}
+
+async function Decrypt(message) {
+    const keys = GetKeys();
+    let pemPvKey = keys[0];
+
+    const pvkey = await window.crypto.subtle.importKey(
+        "pkcs8",
+        str2ab(window.atob(FormatPrivateKey(pemPvKey))),
+        {
+            name: "RSA-OAEP",
+            hash: {name: "SHA-1"}
+        },
+        false,
+        ["decrypt"]
+    );
+
+    return await window.crypto.subtle.decrypt(
+        {
+            name: "RSA-OAEP"
+        },
+        pvkey,
+        str2ab(window.atob(message))
+    );
+}
+
+async function GetResult(btn){
+    let cipher = btn.id;
+    let pvkey = GetKeys()[0];
+    let text = await Decrypt(cipher, pvkey);
+
+    $(btn).replaceWith(ab2str(text));
+}
+
+$(document).ready(async () => {
+    if (!localStorage.getItem("pvkey") || !localStorage.getItem("pbkey")){
+        const keys = await GenerateKeys();
+        StoreKeys(keys[0], keys[1]);
+    }
+
     let pass = $("#input-password");
 
     pass.on("focusin", () => {
@@ -18,8 +113,6 @@ $(document).ready(() => {
         let digitsCount = (newVal.match(/[0-9]/g) || []).length;
         let specialcharsCount = (newVal.match(/[^a-zA-Z\d\s:]/g) || []).length;
 
-        console.log(specialcharsCount);
-
         let percentage = 100 - ( newVal.length * 3 ) - ( uppercaseCount * 2 ) - ( digitsCount * 2 ) - ( specialcharsCount * 4 ) - ( type * 3 );
         if( oldVal.length - newVal.length < 0) $("#form-progress-bar").width(`${percentage}%`);
         else if ( oldVal.length - newVal.length > 0) $("#form-progress-bar").width(`${percentage}%`);
@@ -30,10 +123,12 @@ $(document).ready(() => {
     $("#btn-crack").click(() => {
         let pass = $("#input-password").val();
         let type = $(".btn-group-hash").find(".btn-hash-type.active")[0].id;
+        let pbkey = GetKeys()[1];
 
         $.post("../../../scripts/add_password.php", {
             password: pass,
-            type: type
+            type: type,
+            pbkey: pbkey
         }).done(data => {
             let modal = $("#modalForm");
             let modalTitle = $("#modal-title");
@@ -68,5 +163,5 @@ $(document).ready(() => {
     });
 
     loadTable()
-    setInterval(loadTable, 5000);
+    //setInterval(loadTable, 10000);
 });
