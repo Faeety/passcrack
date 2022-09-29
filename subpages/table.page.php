@@ -11,7 +11,7 @@ require __DIR__ . '/../config.php';
             <th>#</th>
             <th>Hash</th>
             <th>Type</th>
-            <th>Result</th>
+            <th>Résultat</th>
             <th>Status</th>
             <th>Temps</th>
         </tr>
