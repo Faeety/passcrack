@@ -21,7 +21,6 @@ hashcat --runtime 3600 -o cracked.txt -m "$hashType" -a 3 "$phash" "$pattern"
 if [ -f "$FILE" ]; then
 	while read line; do
 		curl -d "id=$id&result=$line&cracked=true&token=$token" -X POST "https://passcrack.ch/scripts/handle_crack.php"
-		echo "$URL"
 	done < $FILE
 else
 	curl -d "id=$id&cracked=false&token=$token" -X POST "https://passcrack.ch/scripts/handle_crack.php"
