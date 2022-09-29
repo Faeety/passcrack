@@ -64,7 +64,7 @@ class Utility
         $stmt->execute();
     }
 
-    public function SetPassword(int $uid, string $hash, int $len, HashType $type) {
+    public function SetPassword(int $uid, string $hash, int $len, HashType $type, string $pbkey) {
         global $conn;
 
         $awaitValue = Status::AWAITING->value;
@@ -72,12 +72,13 @@ class Utility
 
         if ($this->GetPasswordWithUser($uid, Status::AWAITING) || $this->GetPasswordWithUser($uid, Status::IN_PROGRESS)) return "already cracking";
 
-        $stmt = $conn->prepare("INSERT INTO password (hash, length, status, userid, hash_type) VALUES (:hash, :len, :stat, :uid, :ht)");
+        $stmt = $conn->prepare("INSERT INTO password (hash, length, status, userid, hash_type, pbkey) VALUES (:hash, :len, :stat, :uid, :ht, :pbk)");
         $stmt->bindParam(":hash", $hash);
         $stmt->bindParam(":len", $len, PDO::PARAM_INT);
         $stmt->bindParam(":stat", $awaitValue, PDO::PARAM_INT);
         $stmt->bindParam(":uid", $uid, PDO::PARAM_INT);
         $stmt->bindParam(":ht", $typeValue);
+        $stmt->bindParam(":pbk", $pbkey);
 
         $stmt->execute();
         return $conn->lastInsertId();
@@ -164,7 +165,7 @@ class Utility
         $stmt->bindParam(":ip", $ip);
         $stmt->execute();
 
-        return $stmt->lastInsertId();
+        return $conn->lastInsertId();
     }
 
     public function GetIdFromIP(string $ip) {
@@ -203,7 +204,7 @@ class Utility
 
     public function HandleResult(string $result = NULL, int $ownerId, int $userId){
         if (!$result) return '<span class="badge bg-secondary">Indisponible</span>';
-        if ($ownerId == $userId) return $result;
+        if ($ownerId == $userId) return '<button class="btn btn-warning btn-icon" type="button" id="'.$result.'" onclick="GetResult(this)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-unlock" viewBox="0 0 16 16"><path d="M11 1a2 2 0 0 0-2 2v4a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h5V3a3 3 0 0 1 6 0v4a.5.5 0 0 1-1 0V3a2 2 0 0 0-2-2zM3 8a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1H3z"/></svg></button>';
         return '<span class="badge bg-dark">REDACTED</span>';
     }
 
