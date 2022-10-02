@@ -1,5 +1,18 @@
 function loadTable() {
-    if (document.hasFocus()) $("#page-table").load("subpages/table.page.php");
+    if (document.hasFocus()) $("#page-table").load("subpages/table.page.php", function () {
+        let idCached = sessionStorage.getItem("resultId");
+        let resultCached = sessionStorage.getItem("resultText");
+
+        $(".btn-result").click(function() {
+            let result = $(this)[0];
+            GetResult(result.id, result);
+        });
+
+        if(idCached) {
+            let btn = $(`#${idCached}`);
+            btn.replaceWith(resultCached);
+        }
+    });
 }
 
 function ab2str(buf) {
@@ -84,12 +97,16 @@ async function Decrypt(message) {
     );
 }
 
-async function GetResult(btn){
-    let cipher = btn.id;
+async function GetResult(id, btn){
+    btn = $(btn);
+    let cipher = btn.data("hash");
     let pvkey = GetKeys()[0];
     let text = await Decrypt(cipher, pvkey);
 
     $(btn).replaceWith(ab2str(text));
+
+    sessionStorage.setItem("resultId" , id);
+    sessionStorage.setItem("resultText", ab2str(text));
 }
 
 $(document).ready(async () => {
@@ -163,5 +180,5 @@ $(document).ready(async () => {
     });
 
     loadTable()
-    //setInterval(loadTable, 10000);
+    setInterval(loadTable, 5000);
 });

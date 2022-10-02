@@ -19,7 +19,8 @@ $stmt->execute();
 $row = $stmt->fetch();
 
 if (!$row) die("no row found with this id");
-$pbkey = preg_replace('/-----(\w+) (\w+) (\w+)-----/', "\n-----$1 $2 $3-----\n", $row["pbkey"]);
+$pbkey = preg_replace('/-----(\w+) (\w+) (\w+)-----/', "-----$1 $2 $3-----", $row["pbkey"]);
+echo $pbkey;
 
 if ($cracked == "false") {
     $utility->ChangePasswordStatus($row['id'], Status::IMPOSSIBLE);

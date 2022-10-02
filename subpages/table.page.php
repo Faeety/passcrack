@@ -12,7 +12,7 @@ require __DIR__ . '/../config.php';
             <th>Hash</th>
             <th>Type</th>
             <th>Résultat</th>
-            <th>Status</th>
+            <th>Statut</th>
             <th>Temps</th>
         </tr>
         </thead>
