@@ -31,7 +31,7 @@ require __DIR__ . '/config.php';
         <div class="col-md-10 mt-3">
             <div class="card bg-faded-info">
                 <div class="card-body text-center">
-                    <h2 class="display-7 mb-0">25 dernières entrées dans la base de données</h2>
+                    <h2 class="display-7 mb-0">30 dernières entrées dans la base de données</h2>
                 </div>
             </div>
         </div>

@@ -19,9 +19,6 @@
                     <a href="table.php" class="nav-link">Tableau</a>
                 </li>
             </ul>
-<!--            <a href="#" class="btn btn-primary btn-sm fs-sm rounded my-3 my-lg-0">
-                Administration
-            </a>-->
         </nav>
     </div>
 </header>

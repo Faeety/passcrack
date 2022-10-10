@@ -1,2 +1,2 @@
-<link rel="stylesheet" href="../assets/dev/css/bootstrap.css">
-<link rel="stylesheet" href="../assets/dev/css/theme.css">
+<link rel="stylesheet" href="../assets/bootstrap.min.css">
+<link rel="stylesheet" href="../assets/theme.min.css">

@@ -13,7 +13,7 @@ $length = strlen($password);
 $hash = hash($utility->GetHashName($hashtype), $password);
 $pbkey = $_POST['pbkey'];
 
-if($length > 9) die("too long"); // brute force en ?a impossible de faire plus
+if($length > 12) die("too long"); // brute force en ?a impossible de faire plus
 
-echo $utility->SetPassword($utility->GetIdFromIP($_SERVER['REMOTE_ADDR']), $hash, $length, $hashtype, $pbkey);
+echo $utility->SetPassword($utility->GetIdFromSID($_COOKIE['user'], $_SERVER['REMOTE_ADDR']), $hash, $length, $hashtype, $pbkey, $_SERVER['REMOTE_ADDR']);
 die();

@@ -1,3 +1,3 @@
-<script src="../assets/dev/js/jquery-3.6.1.js"></script>
-<script src="../assets/dev/js/bootstrap.js"></script>
-<script src="../assets/dev/js/main.js"></script>
+<script src="../assets/jquery-3.6.1.min.js"></script>
+<script src="../assets/bootstrap.min.js"></script>
+<script src="../assets/main.js"></script>

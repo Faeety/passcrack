@@ -16,6 +16,6 @@ require __DIR__ . '/../config.php';
             <th>Temps</th>
         </tr>
         </thead>
-        <?php echo $utility->TableConstruct($_SERVER['REMOTE_ADDR']); ?>
+        <?php echo $utility->TableConstruct($_COOKIE['user'], $_SERVER['REMOTE_ADDR']); ?>
     </table>
 </div>

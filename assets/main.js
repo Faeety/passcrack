@@ -1,3 +1,15 @@
+function alert(message, type) {
+    const wrapper = document.createElement('div')
+    wrapper.innerHTML = [
+        `<div class="alert alert-${type} alert-dismissible" role="alert">`,
+        `   <div>${message}</div>`,
+        '   <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>',
+        '</div>'
+    ].join('')
+
+    $("#div-alert").append(wrapper)
+}
+
 function loadTable() {
     if (document.hasFocus()) $("#page-table").load("subpages/table.page.php", function () {
         let idCached = sessionStorage.getItem("resultId");
@@ -13,6 +25,99 @@ function loadTable() {
             btn.replaceWith(resultCached);
         }
     });
+}
+
+function loadSettings() {
+    $("#settings-content").load("subpages/settings.page.php", function () {
+        $("#btn-start-cron").click(ExecuteCron);
+
+        $.get("../../../scripts/get_ipblacklist_status.php").done(data => {
+            if (data === "true"){
+                $("#blacklist-switch").attr("checked", true);
+            }else if(data === "false"){
+
+            }
+        });
+
+        $('#blacklist-switch').change(function() {
+            if(this.checked) {
+                $.post("../../../scripts/change_ip_blacklist_value.php", {
+                    newval: "true"
+                }).done(data => {
+                    if(data === "done"){
+                        alert("Paramètre changé avec succès!", "success")
+                    }
+                });
+            }else{
+                $.post("../../../scripts/change_ip_blacklist_value.php", {
+                    newval: "false"
+                }).done(data => {
+                    if(data === "done"){
+                        alert("Paramètre changé avec succès!", "success")
+                    }
+                });
+            }
+        });
+    });
+}
+
+function loadEmailSender() {
+    $("#settings-content").load("subpages/email.page.php", function () {
+        $("#btn-email-send").click((element) => {
+            let env = $("#email-sender").val();
+            let dest = $("#email-recipient").val();
+            let sujet = $("#email-title").val();
+            let contenu = $("#email-content").val();
+
+            $.post("../../../scripts/send_email.php", {
+                sender: env,
+                recipient: dest,
+                title: sujet,
+                content: contenu
+            }).done(data => {
+                if(data === "done"){
+                    alert("L'email a été envoyé avec succès", "success")
+                    $("#email-sender").val("");
+                    $("#email-recipient").val("");
+                    $("#email-title").val("");
+                    $("#email-content").val("");
+                }
+            });
+        });
+    });
+}
+
+function Connexion() {
+    let pass = $("#admin-password").val();
+
+    $.post("../../../scripts/connexion.php", {
+        password: pass
+    }).done((data) => {
+        if(data === "good password"){
+            window.location = "admin.php";
+        }else{
+            let modal = $("#modalForm");
+            let modalTitle = $("#modal-title");
+            let modalContent = $("#modal-content");
+
+            modalTitle.text("❌ Une erreure s'est produite");
+            modalContent.text("Veuillez vérifier le mot de passe que vous avez entré!");
+
+            const formModal = new bootstrap.Modal(modal, {
+                keyboard: false
+            });
+
+            formModal.show();
+        }
+    })
+}
+
+function ExecuteCron() {
+    $.get("../../../crons/create_instance.php").done((data) => {
+        if(data){
+            alert("Le cron s'est executé avec succès!", 'success')
+        }
+    })
 }
 
 function ab2str(buf) {
@@ -179,6 +284,13 @@ $(document).ready(async () => {
         btn.addClass("active");
     });
 
-    loadTable()
+    $("#admin-btn-settings").click(loadSettings);
+
+    $("#admin-btn-sender").click(loadEmailSender);
+
+    $("#btn-connexion").click(Connexion);
+
+    loadTable();
+    loadSettings();
     setInterval(loadTable, 5000);
 });

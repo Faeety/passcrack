@@ -20,15 +20,32 @@ class Utility
         $stmt->execute();
     }
 
-    public function GetPasswordWithUser(int $id, Status $status = NULL) {
+    public function GetIpBlacklistStatus(){
+        global $conn;
+
+        $stmt = $conn->prepare("SELECT value FROM setting WHERE name='IP_Blacklist'");
+        $stmt->execute();
+
+        $row = $stmt->fetch();
+
+        return $row["value"];
+    }
+
+    public function GetPasswordWithUser(int $id, Status $status = NULL, string $ip = NULL) {
         global $conn;
 
         $statusValue = $status->value;
 
         if ($status){
-            $stmt = $conn->prepare("SELECT * FROM password WHERE userid = :id AND status = :stat");
-            $stmt->bindParam(":id", $id, PDO::PARAM_INT);
-            $stmt->bindParam(":stat", $statusValue, PDO::PARAM_INT);
+            if ($this->GetIpBlacklistStatus() == "true"){
+                $stmt = $conn->prepare("SELECT * FROM password WHERE userip = :ip AND status = :stat");
+                $stmt->bindParam(":ip", $ip);
+                $stmt->bindParam(":stat", $statusValue, PDO::PARAM_INT);
+            }else{
+                $stmt = $conn->prepare("SELECT * FROM password WHERE userid = :id AND status = :stat");
+                $stmt->bindParam(":id", $id, PDO::PARAM_INT);
+                $stmt->bindParam(":stat", $statusValue, PDO::PARAM_INT);
+            }
         }else {
             $stmt = $conn->prepare("SELECT * FROM password WHERE userid = :id");
             $stmt->bindParam(":id", $id, PDO::PARAM_INT);
@@ -64,21 +81,22 @@ class Utility
         $stmt->execute();
     }
 
-    public function SetPassword(int $uid, string $hash, int $len, HashType $type, string $pbkey) {
+    public function SetPassword(int $uid, string $hash, int $len, HashType $type, string $pbkey, string $ip) {
         global $conn;
 
         $awaitValue = Status::AWAITING->value;
         $typeValue = $type->value;
 
-        if ($this->GetPasswordWithUser($uid, Status::AWAITING) || $this->GetPasswordWithUser($uid, Status::IN_PROGRESS)) return "already cracking";
+        if ($this->GetPasswordWithUser($uid, Status::AWAITING, $ip) || $this->GetPasswordWithUser($uid, Status::IN_PROGRESS, $ip)) return "already cracking";
 
-        $stmt = $conn->prepare("INSERT INTO password (hash, length, status, userid, hash_type, pbkey) VALUES (:hash, :len, :stat, :uid, :ht, :pbk)");
+        $stmt = $conn->prepare("INSERT INTO password (hash, length, status, userid, hash_type, pbkey, userip) VALUES (:hash, :len, :stat, :uid, :ht, :pbk, :ip)");
         $stmt->bindParam(":hash", $hash);
         $stmt->bindParam(":len", $len, PDO::PARAM_INT);
         $stmt->bindParam(":stat", $awaitValue, PDO::PARAM_INT);
         $stmt->bindParam(":uid", $uid, PDO::PARAM_INT);
         $stmt->bindParam(":ht", $typeValue);
         $stmt->bindParam(":pbk", $pbkey);
+        $stmt->bindParam(":ip", $ip);
 
         $stmt->execute();
         return $conn->lastInsertId();
@@ -158,26 +176,27 @@ class Utility
         return $response;
     }
 
-    public function CreateAccount(string $ip) {
+    public function CreateAccount(string $sessionid, string $ip) {
         global $conn;
 
-        $stmt = $conn->prepare("INSERT INTO user (ip) VALUES (:ip)");
+        $stmt = $conn->prepare("INSERT INTO user (sessionid, ip) VALUES (:sid, :ip)");
+        $stmt->bindParam(":sid", $sessionid);
         $stmt->bindParam(":ip", $ip);
         $stmt->execute();
 
         return $conn->lastInsertId();
     }
 
-    public function GetIdFromIP(string $ip) {
+    public function GetIdFromSID(string $sessionid, string $ip) {
         global $conn;
 
-        $stmt = $conn->prepare("SELECT id FROM user WHERE ip = :ip");
-        $stmt->bindParam(":ip", $ip, PDO::PARAM_INT);
+        $stmt = $conn->prepare("SELECT id FROM user WHERE sessionid = :sid");
+        $stmt->bindParam(":sid", $sessionid);
         $stmt->execute();
 
         $row = $stmt->fetch();
 
-        if (!$row) return $this->CreateAccount($ip);
+        if (!$row) return $this->CreateAccount($sessionid, $ip);
         return $row["id"];
     }
 
@@ -225,12 +244,12 @@ class Utility
         return "<tr>";
     }
 
-    public function TableConstruct(string $ip){
+    public function TableConstruct(string $sessionId, string $ip){
         global $conn;
 
-        $id = $this->GetIdFromIP($ip);
+        $id = $this->GetIdFromSID($sessionId, $ip);
 
-        $stmt = $conn->prepare("SELECT * FROM password ORDER BY id DESC LIMIT 25");
+        $stmt = $conn->prepare("SELECT * FROM password ORDER BY id DESC LIMIT 30");
         $stmt->execute();
 
         $html = "<tbody>";
