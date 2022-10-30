@@ -120,6 +120,7 @@ function ExecuteCron() {
     })
 }
 
+// Merci Renato Mangini pour les deux fonctions ci-dessous https://developer.chrome.com/blog/how-to-convert-arraybuffer-to-and-from-string/
 function ab2str(buf) {
     return String.fromCharCode.apply(null, new Uint8Array(buf));
 }
@@ -138,6 +139,8 @@ function StoreKeys(pvkey, pbkey) {
     localStorage.setItem("pbkey", pbkey);
 }
 
+// Grand merci à l'utilisateur Topaco sur StackOverflow https://stackoverflow.com/questions/73891120/encrypt-on-php-and-decrypt-on-javascript
+// https://www.w3.org/TR/WebCryptoAPI/
 async function GenerateKeys() {
     let key = await window.crypto.subtle.generateKey(
         {

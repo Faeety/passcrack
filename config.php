@@ -13,6 +13,7 @@ $conn = new PDO("mysql:host=$servername;port=3306;dbname=$dbname;charset=utf8mb4
 $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 $conn->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
 
+// https://stackoverflow.com/questions/4356289/php-random-string-generator
 function getRandomString($n) {
     $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
     $randomString = '';
